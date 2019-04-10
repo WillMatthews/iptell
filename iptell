@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
-host="Dell"
-ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'  > "Lip"
-scp "Lip"  ellie:"~/.iptell/ip/Lip_${host}"
-rm "Lip"
+host="Euclid"
+iptellPath="/home/will/.iptell"
+/sbin/ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'  > "$iptellPath/ip_data"
+scp "$iptellPath/ip_data"  ellie:"~/.iptell/ip/${host}-Local"
+rm "$iptellPath/ip_data"
+curl "https://ipapi.co/json" > "$iptellPath/ip_data"
+scp "$iptellPath/ip_data"  ellie:"~/.iptell/ip/${host}-Global"
