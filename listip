@@ -2,7 +2,8 @@
 
 ipdir="/root/.iptell/ip"
 
-echo "<html>" > ips.html
+echo "<!DOCTYPE html>" > ips.html
+echo "<html>" >> ips.html
 echo "<head>" >> ips.html
 echo "<link rel='stylesheet' href='/css/style.css'>" >> ips.html
 echo "<link rel='stylesheet' href='/css/dark.css'>" >> ips.html
