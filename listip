@@ -22,7 +22,7 @@ do
         if [ $fileage -eq "1" ]; then                                                          
             s=""                                                                               
         fi                                                                                     
-        echo -n "<h2 style='color:red;'>$name  (OFFLINE for $fileage hour$s)</h2>"  >> ips.html
+        echo "<h2 style='color:red;'>$name  (OFFLINE for $fileage hour$s)</h2>" >> ips.html
     else                                                                                       
         echo "<h2>$name  (ONLINE)</h2>"  >> ips.html                                           
     fi                                                                                         
