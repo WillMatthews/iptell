@@ -9,9 +9,7 @@ echo "<link rel='stylesheet' href='/css/dark.css'>" >> ips.html
 echo "</head>" >> ips.html
 echo "<body>" >> ips.html
 
-echo -n "<h1>Local and Global IP Audit, as of " >> ips.html
-echo -n $(date) >> ips.html
-echo "</h1>" >> ips.html
+echo "<h1>Local and Global IP Audit, as of $(date) GMT</h1>" >> ips.html
 
 for entry in "$ipdir"/*
 do
