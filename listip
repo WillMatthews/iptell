@@ -1,0 +1,44 @@
+#!/usr/bin/env bash
+
+ipdir="/root/.iptell/ip"
+
+echo "<html>" > ips.html
+echo "<head>" >> ips.html
+echo "<link rel='stylesheet' href='/css/style.css'>" >> ips.html
+echo "</head>" >> ips.html
+echo "<body>" >> ips.html
+
+echo -n "<h1>Local and Global IP Audit, as of " >> ips.html
+echo -n $(date) >> ips.html
+echo "</h1>" >> ips.html
+
+for entry in "$ipdir"/*
+do
+    # the name of the server to the text file
+    name=`echo $entry | sed 's@.*/@@'`
+    if test `find $entry -mmin +30`
+    then
+        echo -n "<h2 style='color:red;'>"  >> ips.html
+        echo -n $name >> ips.html
+        echo -n "  (OFFLINE)</h1>" >> ips.html
+    else
+        echo -n "<h2 >"  >> ips.html
+        echo -n $name >> ips.html
+        echo -n "  (ONLINE)</h1>" >> ips.html
+    fi
+
+    list=$(cat "$entry")
+
+    # echos all the IPs as a list
+    echo "<ul type='circle'>" >> ips.html
+    while read -r line; do
+        echo "<p> $line </p>" >> ips.html
+    done <<< "$list"
+    echo "</ul>" >> ips.html
+
+    echo "<br/><br/>" >> ips.html
+done
+echo "</body>" >> ips.html
+echo "</html>" >> ips.html
+
+mv ips.html /var/www/html/files/priv/files/
