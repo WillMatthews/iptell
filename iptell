@@ -4,5 +4,18 @@ iptellPath="/home/will/.iptell"
 /sbin/ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'  > "$iptellPath/ip_data"
 scp "$iptellPath/ip_data"  ellie:"~/.iptell/ip/${host}-Local"
 rm "$iptellPath/ip_data"
-curl "https://ipapi.co/json" > "$iptellPath/ip_data"
+
+jsonIP=$(curl "https://ipapi.co/json")
+apidata="$(curl "https://ipapi.co/json" | jq -r 'keys_unsorted[] as $k | "\($k), \(.[$k])"')"
+
+table=$(echo "$apidata" | awk 'BEGIN { print "<table>" }
+             { print "<tr><td>" $1 "</td><td>" $2 " " $3 " " $4 " " $5 "</td></tr>" }
+             END   { print "</table>" }' )
+table="$table <!-- ISHTML -->"
+table=$(echo $table | tr ',' ' ')
+echo $table > "$iptellPath/ip_data"
+scp "$iptellPath/ip_data"  ellie:"~/.iptell/ip/${host}-Global"
+
+
+
 scp "$iptellPath/ip_data"  ellie:"~/.iptell/ip/${host}-Global"
