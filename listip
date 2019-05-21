@@ -14,35 +14,40 @@ echo "<h1>Local and Global IP Audit, as of $(date)</h1>" >> ips.html
 
 for entry in "$ipdir"/*
 do
-    # the name of the server to the text file                                                  
-    name=`echo $entry | sed 's@.*/@@'`                                                         
-    fileage=$((($(date +%s) - $(date +%s -r "$entry")) / 3600)) # in hours                     
-    if test `find $entry -mmin +30`                                                            
-    then                                                                                       
-        s="s"                                                                                  
-        if [ $fileage -eq "1" ]; then                                                          
-            s=""                                                                               
-        fi                                                                                     
+    # the name of the server to the text file
+    name=`echo $entry | sed 's@.*/@@'`
+    fileage=$((($(date +%s) - $(date +%s -r "$entry")) / 3600)) # in hours
+    if test `find $entry -mmin +30`
+    then
+        s="s"
+        if [ $fileage -eq "1" ]; then
+            s=""
+        fi
         echo "<h2 style='color:red;'>$name  (OFFLINE for $fileage hour$s)</h2>" >> ips.html
-    else                                                                                       
-        echo "<h2>$name  (ONLINE)</h2>"  >> ips.html                                           
-    fi                                                                                         
-                                                                                               
-    list=$(cat "$entry")                                                                       
-    if [[ $name == *"future-use"* ]]; then                                                     
-        echo "future-use" >> ips.html                                                          
-    else                                                                                       
-        # echos all the IPs as a list                                                          
-        echo "<ul type='circle'>" >> ips.html                                                  
-        while read -r line; do                                                                 
-            echo "<li> $line </li>" >> ips.html                                                
-        done <<< "$list"                                                                       
-        echo "</ul>" >> ips.html                                                               
-    fi                                                                                         
-                                                                                               
-    echo "<br/><br/>" >> ips.html                                                              
-done                                                                                           
-echo "</body>" >> ips.html                                                                     
-echo "</html>" >> ips.html                                                                     
-                                                                                               
-mv ips.html /var/www/html/files/priv/files/                                                    
+    else
+        echo "<h2>$name  (ONLINE)</h2>"  >> ips.html
+    fi
+
+    list=$(cat "$entry")
+    if ! [[ $list == *"ISHMTL"* ]]; then
+    
+        if [[ $name == *"future-use"* ]]; then
+            echo "future-use" >> ips.html
+        else
+            # echos all the IPs as a list
+            echo "<ul type='circle'>" >> ips.html
+            while read -r line; do
+                echo "<li> $line </li>" >> ips.html
+            done <<< "$list"
+            echo "</ul>" >> ips.html
+        fi
+    else
+        echo $list >> ips.html
+    fi
+
+    echo "<br/><br/>" >> ips.html
+done
+echo "</body>" >> ips.html
+echo "</html>" >> ips.html
+
+mv ips.html /var/www/html/files/priv/files/
