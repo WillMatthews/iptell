@@ -1,21 +1,43 @@
 #!/usr/bin/env bash
 host="Euclid"
 iptellPath="/home/will/.iptell"
-/sbin/ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'  > "$iptellPath/ip_data"
-scp "$iptellPath/ip_data"  ellie:"~/.iptell/ip/${host}-Local"
-rm "$iptellPath/ip_data"
+#mkdir -p $iptellPath
 
-jsonIP=$(curl "https://ipapi.co/json")
+#/sbin/ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'  > "$iptellPath/ip_data"
+
+### generate local data
+localinfo="$(/sbin/ifconfig | grep -Ev "RX|TX|loop")" 
+localdata="$( echo "$localinfo" | sed 's/&/\&amp;/g; s/</\&lt;/g; s/>/\&gt;/g; s/"/\&quot;/g; s/'"'"'/\&#39;/g')"
+
+### generate global data
 apidata="$(curl "https://ipapi.co/json" | jq -r 'keys_unsorted[] as $k | "\($k), \(.[$k])"')"
 
-table=$(echo "$apidata" | awk 'BEGIN { print "<table>" }
+table=$(echo "$apidata" | awk 'BEGIN { print "<table id=\"iptell\"><tr><th>Parameter</th><th>Value</th></tr>" }
              { print "<tr><td>" $1 "</td><td>" $2 " " $3 " " $4 " " $5 "</td></tr>" }
              END   { print "</table>" }' )
-table="$table <!-- ISHTML -->"
+
+table="$table"
 table=$(echo $table | tr ',' ' ')
-echo $table > "$iptellPath/ip_data"
-scp "$iptellPath/ip_data"  ellie:"~/.iptell/ip/${host}-Global"
+globaldata=$table
 
+### generate usage data
+uptime="$(uptime)"
+avgcpu="$(iostat -c)"
 
+usagedata="$avgcpu
 
-scp "$iptellPath/ip_data"  ellie:"~/.iptell/ip/${host}-Global"
+load avg: now 5min 15min
+$uptime
+
+$(free -m | awk 'NR==2{printf "Memory Usage: %s/%sMB (%.2f%%)\n", $3,$2,$3*100/$2 }')
+$(df -h | awk '$NF=="/"{printf "Disk Usage: %d/%dGB (%s)\n", $3,$2,$5}')
+$(top -bn1 | grep load | awk '{printf "CPU Load: %.2f\n", $(NF-2)}' )"
+
+localtitle="<h3>Local</h3>"
+globaltitle="<h3>Global</h3>"
+usagetitle="<h3>Usage</h3>"
+
+echo "$localtitle <pre>$localdata</pre> $globaltitle $globaldata <!-- ISHTML -->" > "$iptellPath/ip_data"
+echo "$usagetitle <pre>$usagedata</pre>" >> "$iptellPath/ip_data"
+
+scp "$iptellPath/ip_data"  ellie:"~/.iptell/ip/${host}"
