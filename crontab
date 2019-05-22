@@ -1,5 +1,6 @@
 server:
-*/5 * * * * /root/.iptell/listip >/dev/null 2>&1
+*/5 * * * * /server-home-here/.iptell/listip >/dev/null 2>&1
 
 client:
-*/10 * * * * /home/will/.iptell/iptell > /dev/null 2?&1
+*/10 * * * * /your-home-here/.iptell/iptell > /dev/null 2?&1
+@reboot nohup /your-home-here/.iptell/usagelog &

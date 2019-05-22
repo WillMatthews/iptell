@@ -3,7 +3,7 @@
 iptellPath="/home/will/.iptell"
 logfile="$iptellPath/stats.log"
 
-x=30 # number of minutes ago to remove
+x=120 # number of minutes ago to remove
 
 
 i=0
@@ -20,6 +20,6 @@ while [ 1 ]; do
     echo "$(cat $logfile | awk -v var="$xMinsAgo" -F= '$1 > var')" > $logfile
 
     i=$((i+1))
-sleep 10
+sleep 20
 done
 

@@ -1,22 +1,95 @@
 #!/usr/bin/env bash
 
-ipdir="/root/.iptell/ip"
+iptellPath="/root/.iptell/"
 pubdir="/var/www/html/files/priv/files/"
+ipdir="$iptellPath/ip"
+cd $iptellPath
 
+#################### BEGIN HTML, HEAD
 echo "<!DOCTYPE html>" > ips.html
 echo "<html>" >> ips.html
 echo "<head>" >> ips.html
 echo "<link rel='stylesheet' href='/css/style.css'>" >> ips.html
 echo "<link rel='stylesheet' href='/css/dark.css'>" >> ips.html
+echo "<script src='/js/moment.js'></script>" >> ips.html
+echo "<script src='https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.5.0/Chart.min.js'></script>" >> ips.html
+
+echo "<style>
+.iptellnav {
+  background-color: #333;
+  /* overflow: hidden; */
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+}
+
+div.iptellnav {
+  overflow: auto;
+  white-space: nowrap;
+}
+
+.iptellnav a {
+  /* float: left; */
+  color: #f2f2f2;
+  text-align: center;
+  padding: 14px 16px;
+  text-decoration: none;
+  font-size: 17px;
+  display: inline-block;
+}
+
+.iptellnav a:hover {
+  background-color: #ddd;
+  color: black;
+}
+
+.iptellnav a.online {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.iptellnav a.online:hover {
+  background-color: #3c8c3c;
+  color: white;
+}
+</style>" >> ips.html
 echo "</head>" >> ips.html
+#################### END HEAD
+
+
+#################### BEGIN BODY
 echo "<body>" >> ips.html
 
+#################### BEGIN NAVIGATION
+echo "<div class="iptellnav">" >> ips.html
+for entry in "$ipdir"/*
+do
+    name=`echo $entry | sed 's@.*/@@'`
+    if test `find $entry -mmin +30`
+    then
+        olc=""
+    else
+        olc="class='online'"
+    fi
+    echo "<a $olc href='#$name'>$name</a>" >> ips.html
+done
+echo "</div>" >> ips.html
+#################### END NAVIGATION
+
+
+#################### BEGIN DATA PRINTING LOOP
+
 echo "<h1>Local and Global IP Audit, as of $(date)</h1>" >> ips.html
+echo "<br/><br/>" >> ips.html
 
 for entry in "$ipdir"/*
 do
     # the name of the server to the text file
     name=`echo $entry | sed 's@.*/@@'`
+
+    echo "<a name='$name'></a>" >> ips.html
+
     fileage=$((($(date +%s) - $(date +%s -r "$entry")) / 3600)) # in hours
     fileageMins=$((($(date +%s) - $(date +%s -r "$entry")) / 60)) # in hours
     fileageMins=$(( $fileageMins % 60 ))
@@ -38,22 +111,21 @@ do
     list="$(cat "$entry")"
     if ! [[ $list == *"ISHTML"* ]]
     then
-        if [[ $name == *"future-use"* ]]; then
-            echo "future-use" >> ips.html
-        else
-            # echos all the IPs as a list
-            echo "<ul type='circle'>" >> ips.html
-            while read -r line; do
-                echo "<li> $line </li>" >> ips.html
-            done <<< "$list"
-            echo "</ul>" >> ips.html
-        fi
+        # echos all the IPs as a list
+        echo "<ul type='circle'>" >> ips.html
+        while read -r line; do
+            echo "<li> $line </li>" >> ips.html
+        done <<< "$list"
+        echo "</ul>" >> ips.html
     else
         echo "$list" >> ips.html
     fi
 
     echo "<br/><br/>" >> ips.html
 done
+
+#################### END DATA PRINTING LOOP
+
 echo "</body>" >> ips.html
 echo "</html>" >> ips.html
 

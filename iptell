@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 host="Euclid"
 iptellPath="/home/will/.iptell"
-#mkdir -p $iptellPath
 
 #/sbin/ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'  > "$iptellPath/ip_data"
 
@@ -39,5 +38,83 @@ usagetitle="<h3>Usage</h3>"
 
 echo "$localtitle <pre>$localdata</pre> $globaltitle $globaldata <!-- ISHTML -->" > "$iptellPath/ip_data"
 echo "$usagetitle <pre>$usagedata</pre>" >> "$iptellPath/ip_data"
+
+
+memdata="$(cat ~/.iptell/stats.log | awk -v var="$host" 'BEGIN {print "memdata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $2 "}," } END { print "]" }')"
+cpudata="$(cat ~/.iptell/stats.log | awk -v var="$host" 'BEGIN {print "cpudata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $3 "}," } END { print "]" }')"
+diskdata="$(cat ~/.iptell/stats.log | awk -v var="$host" 'BEGIN {print "diskdata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $4 "}," } END { print "]" }')"
+
+echo "
+<canvas id='line-chart$host' width='800' height='450'></canvas>
+
+<script>
+var $memdata
+var $cpudata
+var $diskdata
+
+new Chart(document.getElementById('line-chart$host'), {
+  type: 'line',
+  data: {
+    datasets: [{ 
+        data: cpudata$host,
+        label: 'CPU',
+        borderColor: '#3e95cd',
+        fill: false,
+        yAxisID: 'right-y-axis'
+      }, { 
+        data: memdata$host,
+        label: 'Memory',
+        borderColor: '#8e5ea2',
+        fill: false,
+        yAxisID: 'left-y-axis'
+      }, { 
+        data: diskdata$host,
+        label: 'Disk',
+        borderColor: '#3cba9f',
+        fill: false,
+        yAxisID: 'left-y-axis'
+      } 
+    ]
+  },
+  options: {
+    title: {
+      display: true,
+      text: '$host Stats'
+    },
+    tooltips: {
+        mode: 'nearest',
+        intersect: false,
+    },
+    scales: {
+      xAxes: [{
+        type: 'time',
+        distribution: 'linear',
+        time: { unit: 'minute' }
+      }],
+      yAxes: [{
+          id: 'left-y-axis',
+          type: 'linear',
+          position: 'left',
+          ticks: { beginAtZero: true },
+          scaleLabel: {
+            display: true,
+            labelString: 'All Other Percentages'
+          }
+      }, {
+          id: 'right-y-axis',
+          type: 'linear',
+          position: 'right',
+          ticks: { beginAtZero: true },
+          scaleLabel: {
+            display: true,
+            labelString: 'CPU Load'
+          }
+      }]
+    }
+  }
+});
+
+</script>" >> "$iptellPath/ip_data"
+
 
 scp "$iptellPath/ip_data"  ellie:"~/.iptell/ip/${host}"
