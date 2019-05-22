@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 ipdir="/root/.iptell/ip"
+pubdir="/var/www/html/files/priv/files/"
 
 echo "<!DOCTYPE html>" > ips.html
 echo "<html>" >> ips.html
@@ -17,20 +18,26 @@ do
     # the name of the server to the text file
     name=`echo $entry | sed 's@.*/@@'`
     fileage=$((($(date +%s) - $(date +%s -r "$entry")) / 3600)) # in hours
+    fileageMins=$((($(date +%s) - $(date +%s -r "$entry")) / 60)) # in hours
+    fileageMins=$(( $fileageMins % 60 ))
     if test `find $entry -mmin +30`
     then
         s="s"
         if [ $fileage -eq "1" ]; then
             s=""
         fi
-        echo "<h2 style='color:red;'>$name  (OFFLINE for $fileage hour$s)</h2>" >> ips.html
+        sm="s"
+        if [ $fileageMins -eq "1" ]; then
+            sm=""
+        fi
+        echo "<h2 style='color:red;'>$name  (OFFLINE for $fileage hour$s, $fileageMins minute$sm)</h2>"  >> ips.html
     else
         echo "<h2>$name  (ONLINE)</h2>"  >> ips.html
     fi
 
-    list=$(cat "$entry")
-    if ! [[ $list == *"ISHMTL"* ]]; then
-    
+    list="$(cat "$entry")"
+    if ! [[ $list == *"ISHTML"* ]]
+    then
         if [[ $name == *"future-use"* ]]; then
             echo "future-use" >> ips.html
         else
@@ -42,7 +49,7 @@ do
             echo "</ul>" >> ips.html
         fi
     else
-        echo $list >> ips.html
+        echo "$list" >> ips.html
     fi
 
     echo "<br/><br/>" >> ips.html
@@ -50,4 +57,4 @@ done
 echo "</body>" >> ips.html
 echo "</html>" >> ips.html
 
-mv ips.html /var/www/html/files/priv/files/
+mv ips.html $pubdir
