@@ -1,89 +1,68 @@
 #!/usr/bin/env bash
 
 iptellPath="/root/.iptell/"
-pubdir="/var/www/html/files/priv/files/"
-ipdir="$iptellPath/ip"
-cd $iptellPath
+pubdir="/var/www/html/files/priv/files/ips.html"
+
+## Don't Touch These Vars
+ipdir="$iptellPath/data/"
+dataFile="$iptellPath/outfile"
 
 #################### BEGIN HTML, HEAD
-echo "<!DOCTYPE html>" > ips.html
-echo "<html>" >> ips.html
-echo "<head>" >> ips.html
-echo "<link rel='stylesheet' href='/css/style.css'>" >> ips.html
-echo "<link rel='stylesheet' href='/css/dark.css'>" >> ips.html
-echo "<script src='/js/moment.min.js'></script>" >> ips.html
-echo "<script src='/js/Chart.min.js'></script>" >> ips.html
-
-echo "</head>" >> ips.html
-#################### END HEAD
-
-
-#################### BEGIN BODY
-echo "<body>" >> ips.html
+echo "<!DOCTYPE html><html><head>" > $dataFile
+echo "<link rel='stylesheet' href='/css/style.css'><link rel='stylesheet' href='/css/dark.css'>" >> $dataFile # css
+echo "<script src='/js/moment.min.js'></script><script src='/js/Chart.min.js'></script>" >> $dataFile # js
+echo "</head><body>" >> $dataFile
+#################### END HEAD, BEGIN BODY
 
 #################### BEGIN NAVIGATION GENERATOR
-echo "<div class="iptellnav">" >> ips.html
+echo "<div class="iptellnav">" >> $dataFile
 for entry in "$ipdir"/*
 do
     name=`echo $entry | sed 's@.*/@@'`
-    if test `find $entry -mmin +30`
-    then
-        olc=""
-    else
-        olc="class='online'"
-    fi
-    echo "<a $olc href='#$name'>$name</a>" >> ips.html
+    if test `find $entry -mmin +30`; then olc=""; else olc="class='online'"; fi # online check navbar
+    echo "<a $olc href='#$name'>$name</a>" >> $dataFile
 done
-echo "</div>" >> ips.html
+echo "</div>" >> $dataFile
 #################### END NAVIGATION GENERATOR
-
 
 #################### BEGIN DATA PRINTING LOOP
 
-echo "<h1>Local and Global IP Audit, as of $(date)</h1>" >> ips.html
+echo "<h1>Local and Global IP Audit, as of $(date)</h1>" >> $dataFile
 
 for entry in "$ipdir"/*
 do
-    # the name of the server to the text file
-    name=`echo $entry | sed 's@.*/@@'`
+    name=`echo $entry | sed 's@.*/@@'` # the name of the client from the filename
 
-    echo "<br/><br/><a name='$name'></a>" >> ips.html
+    echo "<br/><br/><a name='$name'></a>" >> $dataFile # html anchor for navbar
 
     fileage=$((($(date +%s) - $(date +%s -r "$entry")) / 3600)) # in hours
     fileageMins=$((($(date +%s) - $(date +%s -r "$entry")) / 60)) # in hours
     fileageMins=$(( $fileageMins % 60 ))
-    if test `find $entry -mmin +30`
+    if test `find $entry -mmin +30` # online/offline check for H1 title
     then
-        s="s"
-        if [ $fileage -eq "1" ]; then
-            s=""
-        fi
-        sm="s"
-        if [ $fileageMins -eq "1" ]; then
-            sm=""
-        fi
-        echo "<h2 style='color:red;'>$name  (OFFLINE for $fileage hour$s, $fileageMins minute$sm)</h2>"  >> ips.html
+        if [ $fileage -eq "1" ]; then s=""; else s="s"; fi # hours plural
+        if [ $fileageMins -eq "1" ]; then sm=""; else sm="s"; fi # minutes plural
+        echo "<h2 style='color:red;'>$name  (OFFLINE for $fileage hour$s, $fileageMins minute$sm)</h2>" >> $dataFile
     else
-        echo "<h2>$name  (ONLINE)</h2>"  >> ips.html
+        echo "<h2>$name  (ONLINE)</h2>" >> $dataFile
     fi
 
     list="$(cat "$entry")"
     if ! [[ $list == *"ISHTML"* ]]
     then
         # echos all the IPs as a list
-        echo "<ul type='circle'>" >> ips.html
+        echo "<ul type='circle'>" >> $dataFile
         while read -r line; do
-            echo "<li> $line </li>" >> ips.html
+            echo "<li> $line </li>" >> $dataFile
         done <<< "$list"
-        echo "</ul>" >> ips.html
+        echo "</ul>" >> $dataFile
     else
-        echo "$list" >> ips.html
+        echo "$list" >> $dataFile
     fi
 
 done
 
 #################### END DATA PRINTING LOOP
 
-echo "<br/><br/><br/><br/></body></html>" >> ips.html
-
-mv ips.html $pubdir
+echo "<br/><br/><br/><br/></body></html>" >> $dataFile
+mv $dataFile $pubdir

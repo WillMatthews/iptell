@@ -1,8 +1,13 @@
 #!/usr/bin/env bash
-host="Euclid"
-iptellPath="/home/will/.iptell"
 
-#/sbin/ifconfig | grep -Eo 'inet (addr:)?([0-9]*\.){3}[0-9]*' | grep -Eo '([0-9]*\.){3}[0-9]*' | grep -v '127.0.0.1'  > "$iptellPath/ip_data"
+client="Euclid" # your client name
+host="curie" # server hosting iptell
+iptellPath="/home/will/.iptell" # path for your .iptell
+description="Dell Inspiron Laptop" # some text printed below the machine heading
+
+
+## Do not touch vars
+outfile="$iptellPath/tellData"
 
 ### generate local data
 localinfo="$(/sbin/ifconfig | grep -Ev "RX|TX|loop")" 
@@ -36,16 +41,17 @@ localtitle="<h3>Local</h3>"
 globaltitle="<h3>Global</h3>"
 usagetitle="<h3>Usage</h3>"
 
-echo "$localtitle <pre>$localdata</pre> $globaltitle $globaldata <!-- ISHTML -->" > "$iptellPath/ip_data"
-echo "$usagetitle <pre>$usagedata</pre>" >> "$iptellPath/ip_data"
+echo "$description" > "$outfile"
+echo "$localtitle <pre>$localdata</pre> $globaltitle $globaldata <!-- ISHTML -->" >> "$outfile"
+echo "$usagetitle <pre>$usagedata</pre>" >> "$outfile"
 
-
-memdata=$( echo $(cat ~/.iptell/stats.log | awk -v var="$host" 'BEGIN {print "memdata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $2 "}," } END { print "]" }'))
-cpudata=$( echo $(cat ~/.iptell/stats.log | awk -v var="$host" 'BEGIN {print "cpudata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $3 "}," } END { print "]" }'))
-diskdata=$( echo $(cat ~/.iptell/stats.log | awk -v var="$host" 'BEGIN {print "diskdata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $4 "}," } END { print "]" }'))
+### generate the machine statistics plot
+memdata=$( echo $(cat ~/.iptell/stats.log | awk -v var="$client" 'BEGIN {print "memdata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $2 "}," } END { print "]" }'))
+cpudata=$( echo $(cat ~/.iptell/stats.log | awk -v var="$client" 'BEGIN {print "cpudata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $3 "}," } END { print "]" }'))
+diskdata=$( echo $(cat ~/.iptell/stats.log | awk -v var="$client" 'BEGIN {print "diskdata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $4 "}," } END { print "]" }'))
 
 echo "
-<canvas id='line-chart$host' width='800' height='450'></canvas>
+<canvas id='line-chart$client' width='800' height='450'></canvas>
 
 <script>
 var $memdata;
@@ -54,23 +60,23 @@ var $cpudata;
 
 var $diskdata;
 
-new Chart(document.getElementById('line-chart$host'), {
+new Chart(document.getElementById('line-chart$client'), {
   type: 'line',
   data: {
     datasets: [{ 
-        data: cpudata$host,
+        data: cpudata$client,
         label: 'CPU',
         borderColor: '#3e95cd',
         fill: false,
         yAxisID: 'right-y-axis'
       }, { 
-        data: memdata$host,
+        data: memdata$client,
         label: 'Memory',
         borderColor: '#8e5ea2',
         fill: false,
         yAxisID: 'left-y-axis'
       }, { 
-        data: diskdata$host,
+        data: diskdata$client,
         label: 'Disk',
         borderColor: '#3cba9f',
         fill: false,
@@ -81,7 +87,7 @@ new Chart(document.getElementById('line-chart$host'), {
   options: {
     title: {
       display: true,
-      text: '$host Stats'
+      text: '$client Stats'
     },
     tooltips: {
         mode: 'nearest',
@@ -117,7 +123,10 @@ new Chart(document.getElementById('line-chart$host'), {
   }
 });
 
-</script>" >> "$iptellPath/ip_data"
+</script>" >> "$outfile"
 
-
-scp "$iptellPath/ip_data"  ellie:"~/.iptell/ip/${host}"
+if [ "${client,,}" = "${host,,}" ]; then
+    mv "$outfile" "$iptellPath/data/$client"
+else
+    scp "$outfile"  "$host:~/.iptell/data/$client"
+fi
