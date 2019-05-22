@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+iptellPath="/home/will/.iptell"
+logfile="$iptellPath/stats.log"
+
+x=30 # number of minutes ago to remove
+
+
+i=0
+while [ 1 ]; do
+    etime="$(date +"%s")"
+    mem="$(free -m | awk 'NR==2{printf "%.2f", $3*100/$2 }')"
+    disk="$(df -h | awk '$NF=="/"{printf "%s", $5}')"
+    disk=${disk%?}
+
+    cpu="$(top -bn1 | grep load | awk '{printf "%.2f", $(NF-2)}' )"
+    echo "$etime $mem $cpu $disk" >> $logfile
+
+    xMinsAgo=$(( $(date +"%s") - 60 * $x ))
+    echo "$(cat $logfile | awk -v var="$xMinsAgo" -F= '$1 > var')" > $logfile
+
+    i=$((i+1))
+sleep 10
+done
+
