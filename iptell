@@ -40,17 +40,19 @@ echo "$localtitle <pre>$localdata</pre> $globaltitle $globaldata <!-- ISHTML -->
 echo "$usagetitle <pre>$usagedata</pre>" >> "$iptellPath/ip_data"
 
 
-memdata="$(cat ~/.iptell/stats.log | awk -v var="$host" 'BEGIN {print "memdata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $2 "}," } END { print "]" }')"
-cpudata="$(cat ~/.iptell/stats.log | awk -v var="$host" 'BEGIN {print "cpudata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $3 "}," } END { print "]" }')"
-diskdata="$(cat ~/.iptell/stats.log | awk -v var="$host" 'BEGIN {print "diskdata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $4 "}," } END { print "]" }')"
+memdata=$( echo $(cat ~/.iptell/stats.log | awk -v var="$host" 'BEGIN {print "memdata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $2 "}," } END { print "]" }'))
+cpudata=$( echo $(cat ~/.iptell/stats.log | awk -v var="$host" 'BEGIN {print "cpudata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $3 "}," } END { print "]" }'))
+diskdata=$( echo $(cat ~/.iptell/stats.log | awk -v var="$host" 'BEGIN {print "diskdata" var "= ["} { print "{ x: new Date(" $1 "000)," "y:" $4 "}," } END { print "]" }'))
 
 echo "
 <canvas id='line-chart$host' width='800' height='450'></canvas>
 
 <script>
-var $memdata
-var $cpudata
-var $diskdata
+var $memdata;
+
+var $cpudata;
+
+var $diskdata;
 
 new Chart(document.getElementById('line-chart$host'), {
   type: 'line',
@@ -89,7 +91,8 @@ new Chart(document.getElementById('line-chart$host'), {
       xAxes: [{
         type: 'time',
         distribution: 'linear',
-        time: { unit: 'minute' }
+        time: { unit: 'minute',
+        unitStepSize: 15}
       }],
       yAxes: [{
           id: 'left-y-axis',
