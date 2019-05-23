@@ -4,7 +4,7 @@ Static site generator to check if machines are online, show current machine stat
 This project (rather niftily) shows a graph of mem usage, cpu usage and disk usage.
 A global config system also needs to be developed - which will be soon.
 
-Currently the scripts are *very poorly organised* and *lots of things are hardcoded* but this will change soon.
+Currently the scripts are *a bit randomly organised* and *some things are hardcoded* but this will change soon.
 
 ### !!! This will probably end up in my dotfiles !!!
 
@@ -15,9 +15,13 @@ Currently the scripts are *very poorly organised* and *lots of things are hardco
 
 
 ## Requirements
+
 [STYLE CSS](http://willmatthews.xyz/css/dark.css)
+
 [DARK CSS](http://willmatthews.xyz/css/style.css)
+
 [MOMENT JS](http://willmatthews.xyz/js/moment.min.js)
+
 [CHART.JS JS](http://willmatthews.xyz/js/Chart.min.js)
 
 ## Installation
@@ -28,11 +32,18 @@ Currently the scripts are *very poorly organised* and *lots of things are hardco
     - iptell and usagelog commands if your machine is a CLIENT
 - Check settings that files are being scp'd correctly, and paths are correct
 ### Host
-- Do `mkdir -p ./.iptell/ip`
+- Do `mkdir -p ~/.iptell/ip`
 - Move all scripts to `~/.iptell`
 - Add the scripts to your Crontab (suggestions in the file `crontab`)
     - listip if your machine is a HOST
 - Check settings that files are being moved to correct paths
 - Add relevant JS and CSS to your webserver's /css/ and /js/
 
-(this will be automated away soon)
+### (this will be automated away soon - I just need to have time to make the install script)
+
+## Todos
+- Install script
+- Organise it a bit better
+- Find an ideal ratio of samples of computer use against total record length
+- Make the charts look better  (make then work better on mobile)
+
